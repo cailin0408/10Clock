@@ -11,9 +11,9 @@ import UIKit
 
 @objc public  protocol TenClockDelegate {
     //Executed for every touch.
-    @objc optional func timesUpdated(_ clock:TenClock, startDate:Date,  endDate:Date  ) -> ()
+    @objc optional func timesUpdated(_ clock:TenClock, startDate:Date, endDate:Date) -> ()
     //Executed after the user lifts their finger from the control.
-    @objc optional func timesChanged(_ clock:TenClock, startDate:Date,  endDate:Date  ) -> ()
+    @objc optional func timesChanged(_ clock:TenClock, startDate:Date, endDate:Date) -> ()
 }
 func medStepFunction(_ val: CGFloat, stepSize:CGFloat) -> CGFloat{
     let dStepSize = Double(stepSize)
