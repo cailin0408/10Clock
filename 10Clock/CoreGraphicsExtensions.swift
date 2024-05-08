@@ -55,11 +55,11 @@ typealias Angle = CGFloat
 func df() -> CGFloat {
     return    CGFloat(drand48()).checked
 }
-func clockDescretization(_ val: CGFloat) -> CGFloat{
+func clockDescretization(_ val: CGFloat, steps: Int) -> CGFloat{
     let min:Double  = 0
     let max:Double = 2 * Double.pi
-    let steps:Double = 144
-    let stepSize = (max - min) / steps
+    //let steps:Double = 144 * 2
+    let stepSize = (max - min) / Double(steps)
     let nsf = floor(Double(val) / stepSize)
     let rest = Double(val) - stepSize * nsf
     return CGFloat(rest > stepSize / 2 ? stepSize * (nsf + 1) : stepSize * nsf).checked

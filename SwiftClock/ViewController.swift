@@ -9,16 +9,22 @@
 import UIKit
 import TenClock
 
-class ViewController: UITableViewController, TenClockDelegate {
+class ViewController: UITableViewController {
     
     @IBAction func colorPreviewValueChanged(_ sender: UISegmentedControl) {
         switch(sender.selectedSegmentIndex){
         case 0:
-            self.view.tintColor =  UIButton(type: .system).titleColor(for: .normal)!
+            let color = UIButton(type: .system).titleColor(for: .normal)!
+            //self.view.tintColor =  UIButton(type: .system).titleColor(for: .normal)!
+            clock.trackColor = color.withAlphaComponent(0.1)
         case 1:
-            self.view.tintColor = UIColor(red: 0, green: 0.7, blue: 0, alpha: 1)
+            //self.view.tintColor = UIColor(red: 0, green: 0.7, blue: 0, alpha: 1)
+            let color = UIColor(red: 0, green: 0.7, blue: 0, alpha: 1)
+            clock.trackColor = color.withAlphaComponent(0.1)
         case 2:
-            self.view.tintColor = .purple
+            //self.view.tintColor = .purple
+            let color = UIColor.purple
+            clock.trackColor = color.withAlphaComponent(0.1)
         default:()
         }
         
@@ -26,8 +32,6 @@ class ViewController: UITableViewController, TenClockDelegate {
     }
 
     @IBOutlet weak var clock: TenClock!
-    
-
     
     @IBAction func backgroundValueChanged(_ sender: UISegmentedControl) {
         var bg:UIColor?, fg:UIColor?
@@ -41,13 +45,12 @@ class ViewController: UITableViewController, TenClockDelegate {
         default:()
         }
 
-        _ = cells.map{
+        cells.forEach({
             $0.backgroundColor = bg
-        }
-        _ = labels.map{
+        })
+        labels.forEach({
             $0.textColor = fg
-        }
-        
+        })
     }
 
     @IBAction func enabledValueChanged(_ sender: AnyObject) {
@@ -62,25 +65,11 @@ class ViewController: UITableViewController, TenClockDelegate {
     @IBOutlet weak var endTime: UILabel!
     @IBOutlet weak var beginTime: UILabel!
     
-    
-    
-    
     lazy var dateFormatter: DateFormatter = {
         let dateFormatter = DateFormatter()
         dateFormatter.dateFormat = "hh:mm a"
         return dateFormatter
     }()
-    func timesChanged(_ clock:TenClock, startDate:Date,  endDate:Date  ) -> (){
-        print("start at: \(startDate), end at: \(endDate)")
-		
-        
-    
-    }
-    func timesUpdated(_ clock:TenClock, startDate:Date,  endDate:Date  ) -> (){
-        self.beginTime.text = dateFormatter.string(from: startDate)
-        self.endTime.text = dateFormatter.string(from: endDate)
-        
-    }
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -91,8 +80,26 @@ class ViewController: UITableViewController, TenClockDelegate {
             x.delaysContentTouches = false
         }
         
+        clock.clockHourType = ._24Hour
+        clock.clockOffset = Double.pi //時鐘轉180度
+        clock.trackSpace = 10
+        //clock.trackColor = .yellow.withAlphaComponent(0.5)
+        clock.pathColor = .black
+        clock.pathWidth = 58
+        clock.internalShift = 3
+        clock.headBackgroundColor = .white
+        clock.tailBackgroundColor = .white
+        clock.headImage = .init(named: "icon_s1")
+        clock.tailImage = .init(named: "icon_s5")
+        clock.isReversePathDraw = true
+        clock.isShowDetailTicks = false
+        clock.numeralsFont = .init(name: "PingFangTC-Medium", size: 12)
+        clock.numeralsColor = .black
+        clock.isShowCenterTitle = false
+        
+        clock.trackColor = clock.tintColor.withAlphaComponent(0.1)
         clock.startDate = Date()
-        clock.endDate = Date().addingTimeInterval(-60 * 60 * 8 )
+        clock.endDate = Date().addingTimeInterval(60 * 60 * 4)
         clock.update()
         clock.delegate = self
     }
@@ -101,30 +108,89 @@ class ViewController: UITableViewController, TenClockDelegate {
     }
     var c:TenClock?
 	
-
-
     func injected(){
         refresh()
     }
     func refresh(){
-
         if let c=c{
             c.removeFromSuperview()
-            
         }
-        
-        
     }
-
     
-    override func didRotate(from fromInterfaceOrientation: UIInterfaceOrientation) {
+    override func didRotate(from fromInterfaceOrientation: UIInterfaceOrientation){
         refresh()
     }
     override func didReceiveMemoryWarning() {
         super.didReceiveMemoryWarning()
         // Dispose of any resources that can be recreated.
     }
-
-
 }
 
+extension ViewController: TenClockDelegate{
+    func timesChanged(_ clock:TenClock, startDate:Date, endDate:Date) -> (){
+        print("start at: \(startDate), end at: \(endDate)")
+    }
+    
+    func timesUpdated(_ clock:TenClock, startDate:Date, endDate:Date) -> (){
+        self.beginTime.text = dateFormatter.string(from: startDate)
+        self.endTime.text = dateFormatter.string(from: endDate)
+    }
+    
+    func isGradientPath(_ clock: TenClock) -> Bool {
+        return true
+    }
+    
+    func numberOfNumerals(_ clock: TenClock) -> Int {
+        return 4
+    }
+    
+    func tenClock(_ clock: TenClock, textForNumeralsAt index: Int) -> String {
+        switch index{
+        case 0:
+            return "18"
+        case 1:
+            return "24"
+        case 2:
+            return "6"
+        case 3:
+            return "12"
+        default:
+            break
+        }
+        
+        return ""
+    }
+    
+    func numberOfIcons(_ clock: TenClock) -> Int {
+        return 2
+    }
+    
+    func tenClock(_ clock: TenClock, imageForIconsAt index: Int) -> UIImage? {
+        switch index{
+        case 0:
+            guard let img = UIImage(named: "icon_s5") else { return nil }
+            
+            let reSize = CGSize.init(width: 14, height: 14)
+            UIGraphicsBeginImageContextWithOptions(reSize, false, UIScreen.main.scale)
+            img.draw(in: CGRect(x: 0, y: 0, width: reSize.width, height: reSize.height))
+            let reSizeImage:UIImage = UIGraphicsGetImageFromCurrentImageContext()!
+            UIGraphicsEndImageContext()
+    
+            return reSizeImage
+        case 1:
+            guard let img = UIImage(named: "icon_s1") else { return nil }
+            
+            let reSize = CGSize.init(width: 9, height: 9)
+            UIGraphicsBeginImageContextWithOptions(reSize, false, UIScreen.main.scale)
+            img.draw(in: CGRect(x: 0, y: 0, width: reSize.width, height: reSize.height))
+            let reSizeImage:UIImage = UIGraphicsGetImageFromCurrentImageContext()!
+            UIGraphicsEndImageContext()
+    
+            return reSizeImage
+        default:
+            break
+        }
+        
+        return nil
+    }
+}

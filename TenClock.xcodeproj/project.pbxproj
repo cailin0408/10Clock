@@ -425,6 +425,7 @@
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = JD.SwiftClockTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_VERSION = 5.0;
 				TEST_TARGET_NAME = SwiftClockSample;
 			};
 			name = Debug;
@@ -436,6 +437,7 @@
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = JD.SwiftClockTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_VERSION = 5.0;
 				TEST_TARGET_NAME = SwiftClockSample;
 			};
 			name = Release;
@@ -540,8 +542,9 @@
 				DEVELOPMENT_TEAM = HK6MW5KXC2;
 				INFOPLIST_FILE = SwiftClock/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
-				PRODUCT_BUNDLE_IDENTIFIER = JD.SwiftClock;
+				PRODUCT_BUNDLE_IDENTIFIER = CY.TenClock;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_VERSION = 5.0;
 			};
 			name = Debug;
 		};
@@ -554,8 +557,9 @@
 				DEVELOPMENT_TEAM = HK6MW5KXC2;
 				INFOPLIST_FILE = SwiftClock/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
-				PRODUCT_BUNDLE_IDENTIFIER = JD.SwiftClock;
+				PRODUCT_BUNDLE_IDENTIFIER = CY.TenClock;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_VERSION = 5.0;
 			};
 			name = Release;
 		};
