@@ -127,13 +127,13 @@ class ViewController: UITableViewController {
 }
 
 extension ViewController: TenClockDelegate{
-    func timesChanged(_ clock:TenClock, startDate:Date, endDate:Date) -> (){
-        print("start at: \(startDate), end at: \(endDate)")
-    }
-    
     func timesUpdated(_ clock:TenClock, startDate:Date, endDate:Date) -> (){
         self.beginTime.text = dateFormatter.string(from: startDate)
         self.endTime.text = dateFormatter.string(from: endDate)
+    }
+    
+    func timesChanged(_ clock:TenClock, startDate:Date, endDate:Date) -> (){
+        print("start at: \(startDate), end at: \(endDate), isTouchHead: \(clock.isTouchHead), isTouchTail: \(clock.isTouchTail), isTouchPath: \(clock.isTouchPath)")
     }
     
     func isGradientPath(_ clock: TenClock) -> Bool {

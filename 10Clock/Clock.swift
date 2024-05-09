@@ -160,6 +160,24 @@ open class TenClock : UIControl{
     /// 是否讓使用者可以旋轉路徑
     open var isUserRotatePathEnabled: Bool = true
     
+    var touchHead: Bool = true
+    /// 是否觸碰到Head
+    open var isTouchHead: Bool{
+        return touchHead
+    }
+    
+    var touchTail: Bool = true
+    /// 是否觸碰到Tail
+    open var isTouchTail: Bool{
+        return touchTail
+    }
+    
+    var touchPath: Bool = true
+    /// 是否觸碰到Path
+    open var isTouchPath: Bool{
+        return touchPath
+    }
+    
     open var minorTicksEnabled:Bool = true
     open var majorTicksEnabled:Bool = true
     @objc open var disabled:Bool = false {
@@ -648,20 +666,29 @@ open class TenClock : UIControl{
 
         }
 
+        //注意: head、tail是相反
+        //reset to false
+        touchTail = false
+        touchHead = false
+        touchPath = false
+        
         switch(layer){
         case headLayer:
+            touchTail = true
             if (shouldMoveHead) {
             pointMover = pointerMoverProducer({ _ in self.headAngle}, {self.headAngle += $0; self.tailAngle += 0})
             } else {
                 pointMover = nil
             }
         case tailLayer:
+            touchHead = true
             if (shouldMoveHead) {
             pointMover = pointerMoverProducer({_ in self.tailAngle}, {self.headAngle += 0;self.tailAngle += $0})
                 } else {
                     pointMover = nil
             }
         case pathLayer:
+            touchPath = true
             if (shouldMoveHead && isUserRotatePathEnabled) {
             		pointMover = pointerMoverProducer({ pt in
                 		let x = CGVector(from: self.bounds.center,
