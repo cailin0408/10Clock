@@ -150,6 +150,8 @@ open class TenClock : UIControl{
     open var numeralInsetPadding: CGFloat = 10
     /// 時刻圖示內距Padding值
     open var iconInsetPadding: CGFloat = 25
+    /// 自定時刻圖示大小
+    open var customIconSize: CGSize? = nil
     /// 是否顯示正中間文字(預設為時間差)
     open var isShowCenterTitle: Bool = true
     /// 是否讓使用者可以旋轉路徑
@@ -469,7 +471,7 @@ open class TenClock : UIControl{
             if let icon = delegate?.tenClock?(self, imageForIconsAt: i-1){
                 let iconLayer = CALayer()
                 iconLayer.backgroundColor = UIColor.clear.cgColor
-                iconLayer.bounds = CGRect(x: 0, y: 0 , width: 14, height: 14)
+                iconLayer.bounds = CGRect(x: 0, y: 0 , width: customIconSize?.width ?? icon.size.width, height: customIconSize?.height ?? icon.size.height)
                 iconLayer.contents = icon.cgImage
                 iconLayer.position = CGVector(from:origin, to:startPos).rotate( CGFloat(Double(i) * step)).add(origin.vector).point.checked
                 iconsLayer.addSublayer(iconLayer)
