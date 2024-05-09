@@ -18,6 +18,11 @@ import UIKit
     @objc optional func isGradientPath(_ clock:TenClock) -> Bool
     @objc optional func colorForGradientPath(_ clock:TenClock) -> [UIColor]
     
+    @objc optional func imageForHead(_ clock:TenClock) -> UIImage?
+    @objc optional func imageSizeForHead(_ clock:TenClock) -> CGSize
+    @objc optional func imageForTail(_ clock:TenClock) -> UIImage?
+    @objc optional func imageSizeForTail(_ clock:TenClock) -> CGSize
+    
     @objc optional func numberOfNumerals(_ clock:TenClock) -> Int
     @objc optional func tenClock(_ clock:TenClock, textForNumeralsAt index: Int) -> String
     @objc optional func numberOfIcons(_ clock:TenClock) -> Int
@@ -142,8 +147,6 @@ open class TenClock : UIControl{
     open var tailText: String = "End"
     open var headTextColor = UIColor.black
     open var tailTextColor = UIColor.black
-    open var headImage: UIImage? = nil
-    open var tailImage: UIImage? = nil
     /// 是否反向繪製路徑
     open var isReversePathDraw: Bool = false
     /// 時刻文字內距Padding值
@@ -403,10 +406,12 @@ open class TenClock : UIControl{
         topTailLayer.sublayers?.forEach({$0.removeFromSuperlayer()})
         
         //use head image or text
-        if let headImage = headImage{
+        if let headImage = delegate?.imageForHead?(self){
+            let autoSize: CGSize = CGSize(width: min(headImage.size.width, iSize.width), height: min(headImage.size.height, iSize.height))
+            let imgSize = delegate?.imageSizeForHead?(self) ?? autoSize
             let startImg = CALayer()
             startImg.backgroundColor = UIColor.clear.cgColor
-            startImg.bounds = CGRect(x: 0, y: 0 , width: iSize.width, height: iSize.height)
+            startImg.bounds = CGRect(x: 0, y: 0 , width: imgSize.width, height: imgSize.height)
             startImg.position = topTailLayer.center
             startImg.contents = headImage.cgImage
             topTailLayer.addSublayer(startImg)
@@ -417,10 +422,12 @@ open class TenClock : UIControl{
         }
         
         //use tail image or text
-        if let tailImage = tailImage{
+        if let tailImage = delegate?.imageForTail?(self){
+            let autoSize: CGSize = CGSize(width: min(tailImage.size.width, iSize.width), height: min(tailImage.size.height, iSize.height))
+            let imgSize = delegate?.imageSizeForTail?(self) ?? autoSize
             let endImg = CALayer()
             endImg.backgroundColor = UIColor.clear.cgColor
-            endImg.bounds = CGRect(x: 0, y: 0 , width: iSize.width, height: iSize.height)
+            endImg.bounds = CGRect(x: 0, y: 0 , width: imgSize.width, height: imgSize.height)
             endImg.position = topHeadLayer.center
             endImg.contents = tailImage.cgImage
             topHeadLayer.addSublayer(endImg)

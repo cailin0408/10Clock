@@ -89,8 +89,6 @@ class ViewController: UITableViewController {
         clock.internalShift = 3
         clock.headBackgroundColor = .white
         clock.tailBackgroundColor = .white
-        clock.headImage = .init(named: "icon_s1")
-        clock.tailImage = .init(named: "icon_s5")
         clock.isReversePathDraw = true
         clock.isShowDetailTicks = false
         clock.numeralsFont = .init(name: "PingFangTC-Medium", size: 12)
@@ -140,6 +138,22 @@ extension ViewController: TenClockDelegate{
     
     func isGradientPath(_ clock: TenClock) -> Bool {
         return true
+    }
+    
+    func imageForHead(_ clock: TenClock) -> UIImage? {
+        return .init(named: "icon_s1")
+    }
+    
+    func imageSizeForHead(_ clock: TenClock) -> CGSize {
+        return .init(width: 30, height: 30)
+    }
+    
+    func imageForTail(_ clock: TenClock) -> UIImage? {
+        return .init(named: "icon_s5")
+    }
+    
+    func imageSizeForTail(_ clock: TenClock) -> CGSize {
+        return .init(width: 30, height: 30)
     }
     
     func numberOfNumerals(_ clock: TenClock) -> Int {
