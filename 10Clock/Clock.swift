@@ -152,6 +152,8 @@ open class TenClock : UIControl{
     open var iconInsetPadding: CGFloat = 25
     /// 是否顯示正中間文字(預設為時間差)
     open var isShowCenterTitle: Bool = true
+    /// 是否讓使用者可以旋轉路徑
+    open var isUserRotatePathEnabled: Bool = true
     
     open var minorTicksEnabled:Bool = true
     open var majorTicksEnabled:Bool = true
@@ -342,7 +344,7 @@ open class TenClock : UIControl{
         let arcCenter = pathLayer.center
         pathLayer.fillColor = UIColor.clear.cgColor
         pathLayer.lineWidth = pathWidth
-        //print("start = \(headAngle / CGFloat(Double.pi)), end = \(tailAngle / CGFloat(Double.pi))")
+        //print("[CY] headAngle: \(headAngle), tailAngle: \(tailAngle), start = \(headAngle / CGFloat(Double.pi)), end = \(tailAngle / CGFloat(Double.pi))")
         if isReversePathDraw{
             pathLayer.path = UIBezierPath(
                 arcCenter: arcCenter,
@@ -651,7 +653,7 @@ open class TenClock : UIControl{
                     pointMover = nil
             }
         case pathLayer:
-            if (shouldMoveHead) {
+            if (shouldMoveHead && isUserRotatePathEnabled) {
             		pointMover = pointerMoverProducer({ pt in
                 		let x = CGVector(from: self.bounds.center,
                 		                 to:CGPoint(x: prev.x, y: self.layer.bounds.height - prev.y)).theta;

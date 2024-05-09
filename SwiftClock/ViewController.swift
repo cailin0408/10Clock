@@ -96,12 +96,14 @@ class ViewController: UITableViewController {
         clock.numeralsFont = .init(name: "PingFangTC-Medium", size: 12)
         clock.numeralsColor = .black
         clock.isShowCenterTitle = false
+        clock.isUserRotatePathEnabled = false
         
         clock.trackColor = clock.tintColor.withAlphaComponent(0.1)
+        //first set endDate, then set startDate
+        clock.endDate = Date().addingTimeInterval(60 * 60 * 8)
         clock.startDate = Date()
-        clock.endDate = Date().addingTimeInterval(60 * 60 * 4)
-        clock.update()
         clock.delegate = self
+        clock.update()
     }
     override func viewWillAppear(_ animated: Bool) {
         refresh()
