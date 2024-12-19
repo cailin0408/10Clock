@@ -46,7 +46,7 @@ open class TenClock : UIControl{
         case _24Hour = 24
     }
 
-    open var delegate:TenClockDelegate?
+    open weak var delegate:TenClockDelegate?
     //overall inset. Controls all sizes.
     @IBInspectable var insetAmount: CGFloat = 40
     open var clockHourType: ClockHourType = ._12Hour
