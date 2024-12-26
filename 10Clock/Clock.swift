@@ -182,7 +182,7 @@ open class TenClock : UIControl{
     open var majorTicksEnabled:Bool = true
     @objc open var disabled:Bool = false {
         didSet{
-        		update()
+            update()
         }
     }
     
@@ -299,8 +299,8 @@ open class TenClock : UIControl{
         self.layer.size = CGSize(width: mm, height: mm)
 
         //strokeColor = disabledFormattedColor(tintColor)
-        trackLayer.strokeColor = trackColor.cgColor
-        pathLayer.strokeColor = pathColor.cgColor
+        trackLayer.strokeColor = trackColor.resolvedColor(with: self.traitCollection).cgColor
+        pathLayer.strokeColor = pathColor.resolvedColor(with: self.traitCollection).cgColor
         overallPathLayer.occupation = layer.occupation
         gradientLayer.occupation = layer.occupation
 
@@ -331,7 +331,7 @@ open class TenClock : UIControl{
         let isGradientPath = delegate?.isGradientPath?(self) ?? true
         if isGradientPath{
             let colors = delegate?.colorForGradientPath?(self) ?? [tintColor, tintColor.modified(withAdditionalHue: -0.08, additionalSaturation: 0.15, additionalBrightness: 0.2)].map(disabledFormattedColor)
-            gradientLayer.colors = colors.map({ $0.cgColor })
+            gradientLayer.colors = colors.map({ $0.resolvedColor(with: self.traitCollection).cgColor })
             /*
             gradientLayer.colors =
             [tintColor,
@@ -343,7 +343,7 @@ open class TenClock : UIControl{
             gradientLayer.startPoint = CGPoint(x:0,y:0)
         }else{
             //FIXME: 看情況修正isGradientPath=false時的寫法，取消CAGradientLayer被修改的內容
-            gradientLayer.colors = [pathColor.cgColor, pathColor.cgColor]
+            gradientLayer.colors = [pathColor.resolvedColor(with: self.traitCollection).cgColor, pathColor.resolvedColor(with: self.traitCollection).cgColor]
             gradientLayer.mask = overallPathLayer
             gradientLayer.startPoint = CGPoint(x:0,y:0)
         }
@@ -391,7 +391,7 @@ open class TenClock : UIControl{
         let l = CATextLayer()
         l.bounds.size = CGSize(width: 30, height: 15)
         l.fontSize = f.pointSize
-        l.foregroundColor =  disabledFormattedColor(color ?? tintColor).cgColor
+        l.foregroundColor =  disabledFormattedColor(color ?? tintColor).resolvedColor(with: self.traitCollection).cgColor
         l.alignmentMode = CATextLayerAlignmentMode.center
         l.contentsScale = UIScreen.main.scale
         l.font = cgFont
@@ -412,14 +412,14 @@ open class TenClock : UIControl{
         headLayer.position = headPoint
         topTailLayer.position = tailPoint
         topHeadLayer.position = headPoint
-        headLayer.fillColor = tailBgColor.cgColor
-        tailLayer.fillColor = headBgColor.cgColor
+        headLayer.fillColor = tailBgColor.resolvedColor(with: self.traitCollection).cgColor
+        tailLayer.fillColor = headBgColor.resolvedColor(with: self.traitCollection).cgColor
         topTailLayer.path = iCircle
         topHeadLayer.path = iCircle
         topTailLayer.size = iSize
         topHeadLayer.size = iSize
-        topHeadLayer.fillColor = disabledFormattedColor(headBackgroundColor).cgColor
-        topTailLayer.fillColor = disabledFormattedColor(tailBackgroundColor).cgColor
+        topHeadLayer.fillColor = disabledFormattedColor(headBackgroundColor).resolvedColor(with: self.traitCollection).cgColor
+        topTailLayer.fillColor = disabledFormattedColor(tailBackgroundColor).resolvedColor(with: self.traitCollection).cgColor
         topHeadLayer.sublayers?.forEach({$0.removeFromSuperlayer()})
         topTailLayer.sublayers?.forEach({$0.removeFromSuperlayer()})
         
@@ -431,7 +431,7 @@ open class TenClock : UIControl{
             startImg.backgroundColor = UIColor.clear.cgColor
             startImg.bounds = CGRect(x: 0, y: 0 , width: imgSize.width, height: imgSize.height)
             startImg.position = topTailLayer.center
-            startImg.contents = headImage.cgImage
+            startImg.contents = headImage.imageAsset?.image(with: self.traitCollection).cgImage ?? headImage.cgImage
             topTailLayer.addSublayer(startImg)
         }else{
             let stText = tlabel(headText, color: disabledFormattedColor(headTextColor))
@@ -447,7 +447,7 @@ open class TenClock : UIControl{
             endImg.backgroundColor = UIColor.clear.cgColor
             endImg.bounds = CGRect(x: 0, y: 0 , width: imgSize.width, height: imgSize.height)
             endImg.position = topHeadLayer.center
-            endImg.contents = tailImage.cgImage
+            endImg.contents = tailImage.imageAsset?.image(with: self.traitCollection).cgImage ?? tailImage.cgImage
             topHeadLayer.addSublayer(endImg)
         }else{
             let endText = tlabel(tailText, color: disabledFormattedColor(tailTextColor))
@@ -476,7 +476,7 @@ open class TenClock : UIControl{
             //            l.foregroundColor
             l.font = cgFont
             l.string = delegate?.tenClock?(self, textForNumeralsAt: i-1) ?? "\(i)"
-            l.foregroundColor = disabledFormattedColor(numeralsColor ?? tintColor).cgColor
+            l.foregroundColor = disabledFormattedColor(numeralsColor ?? tintColor).resolvedColor(with: self.traitCollection).cgColor
             l.bounds.size = l.preferredFrameSize()
             l.position = CGVector(from:origin, to:startPos).rotate( CGFloat(Double(i) * step)).add(origin.vector).point.checked
             numeralsLayer.addSublayer(l)
@@ -497,7 +497,7 @@ open class TenClock : UIControl{
                 let iconLayer = CALayer()
                 iconLayer.backgroundColor = UIColor.clear.cgColor
                 iconLayer.bounds = CGRect(x: 0, y: 0 , width: customIconSize?.width ?? icon.size.width, height: customIconSize?.height ?? icon.size.height)
-                iconLayer.contents = icon.cgImage
+                iconLayer.contents = icon.imageAsset?.image(with: self.traitCollection).cgImage ?? icon.cgImage
                 iconLayer.position = CGVector(from:origin, to:startPos).rotate( CGFloat(Double(i) * step)).add(origin.vector).point.checked
                 iconsLayer.addSublayer(iconLayer)
             }
@@ -513,7 +513,7 @@ open class TenClock : UIControl{
             titleTextLayer.bounds.size = CGSize( width: titleTextInset.size.width, height: 50)
             titleTextLayer.fontSize = f.pointSize
             titleTextLayer.alignmentMode = CATextLayerAlignmentMode.center
-            titleTextLayer.foregroundColor = disabledFormattedColor(centerTextColor ?? tintColor).cgColor
+            titleTextLayer.foregroundColor = disabledFormattedColor(centerTextColor ?? tintColor).resolvedColor(with: self.traitCollection).cgColor
             titleTextLayer.contentsScale = UIScreen.main.scale
             titleTextLayer.font = cgFont
             //var computedTailAngle = tailAngle //+ (headAngle > tailAngle ? twoPi : 0)
@@ -544,7 +544,7 @@ open class TenClock : UIControl{
         repLayer.sublayers?.forEach({$0.removeFromSuperlayer()})
         if isShowDetailTicks{
             let t = tick()
-            t.strokeColor = disabledFormattedColor(minorTicksColor ?? tintColor).cgColor
+            t.strokeColor = disabledFormattedColor(minorTicksColor ?? tintColor).resolvedColor(with: self.traitCollection).cgColor
             t.position = CGPoint(x: repLayer.bounds.midX, y: 10)
             repLayer.addSublayer(t)
             repLayer.position = self.bounds.center
@@ -554,7 +554,7 @@ open class TenClock : UIControl{
         repLayer2.sublayers?.forEach({$0.removeFromSuperlayer()})
         if isShowHourTicks{
             let t2 = tick()
-            t2.strokeColor = disabledFormattedColor(majorTicksColor ?? tintColor).cgColor
+            t2.strokeColor = disabledFormattedColor(majorTicksColor ?? tintColor).resolvedColor(with: self.traitCollection).cgColor
             t2.lineWidth = 0.5
             t2.position = CGPoint(x: repLayer2.bounds.midX, y: 10)
             repLayer2.addSublayer(t2)
@@ -581,12 +581,12 @@ open class TenClock : UIControl{
         gradientLayer.addSublayer(topTailLayer)
         update()
         //strokeColor = disabledFormattedColor(tintColor)
-        trackLayer.strokeColor = trackColor.cgColor
-        pathLayer.strokeColor = pathColor.cgColor
+        trackLayer.strokeColor = trackColor.resolvedColor(with: self.traitCollection).cgColor
+        pathLayer.strokeColor = pathColor.resolvedColor(with: self.traitCollection).cgColor
     }
     override public init(frame: CGRect) {
         super.init(frame:frame)
-//        self.addConstraint(NSLayoutConstraint(item: self, attribute: .Width, relatedBy: .Equal, toItem: self	, attribute: .Height, multiplier: 1, constant: 0))
+//        self.addConstraint(NSLayoutConstraint(item: self, attribute: .Width, relatedBy: .Equal, toItem: self    , attribute: .Height, multiplier: 1, constant: 0))
        // tintColor = UIColor ( red: 0.755, green: 0.0, blue: 1.0, alpha: 1.0 )
         backgroundColor = UIColor ( red: 0.1149, green: 0.115, blue: 0.1149, alpha: 0.0 )
         createSublayers()
@@ -632,7 +632,7 @@ open class TenClock : UIControl{
     var pointMover:((CGPoint) ->())?
     override open func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
         guard !disabled  else {
-        		pointMover = nil
+            pointMover = nil
             return
         }
         
@@ -690,9 +690,9 @@ open class TenClock : UIControl{
         case pathLayer:
             touchPath = true
             if (shouldMoveHead && isUserRotatePathEnabled) {
-            		pointMover = pointerMoverProducer({ pt in
-                		let x = CGVector(from: self.bounds.center,
-                		                 to:CGPoint(x: prev.x, y: self.layer.bounds.height - prev.y)).theta;
+                    pointMover = pointerMoverProducer({ pt in
+                        let x = CGVector(from: self.bounds.center,
+                                         to:CGPoint(x: prev.x, y: self.layer.bounds.height - prev.y)).theta;
                     prev = pt;
                     return x
                     }, {self.headAngle += $0; self.tailAngle += $0 })
@@ -728,7 +728,7 @@ open class TenClock : UIControl{
 //        print(touch.locationInView(self))
         pointMover(touch.location(in: self))
         
-    	delegate?.timesUpdated?(self, startDate: self.startDate, endDate: endDate)
+        delegate?.timesUpdated?(self, startDate: self.startDate, endDate: endDate)
         
 
     }
