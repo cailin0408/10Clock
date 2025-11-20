@@ -391,13 +391,43 @@ open class TenClock : UIControl{
 
         if clockHourType == ._24Hour{
             // 24 小時制：將分鐘數轉換為 0-4π 的角度
-            // π/2 + clockOffset 是起始角度（12 點鐘方向）
-            // 減去時間比例乘以 2π（逆時針）
+            // 正上方為 0:00 (π/2)
+            // 順時針旋轉：0 → 3 → 6 → 9 → 12 → 15 → 18 → 21 → 0
+            //
+            // 公式說明：
+            // - π/2 是起始角度（正上方 = 0:00）
+            // - (min / (24 * 60)) 是時間比例 (0~1)
+            // - 乘以 2π 得到旋轉角度
+            // - 因為順時針，所以是減法
+            
+            let angle = CGFloat(Double.pi / 2 - (min / (24 * 60)) * 2 * Double.pi)
+            
             // 對齊到 5 分鐘的步進
-            return medStepFunction(CGFloat(Double.pi / 2 + clockOffset - ( min / (24 * 60)) * 2 * Double.pi), stepSize: CGFloat( 2 * Double.pi / (24 * 60 / 5)))
-        }else{
-            // 12 小時制：類似邏輯但使用 12 小時
-            return medStepFunction(CGFloat(Double.pi / 2 + clockOffset - ( min / (12 * 60)) * 2 * Double.pi), stepSize: CGFloat( 2 * Double.pi / (12 * 60 / 5)))
+            let stepped = medStepFunction(angle, stepSize: CGFloat(2 * Double.pi / (24 * 60 / 5)))
+            
+            // 確保角度在 π/2 到 π/2 + 4π 範圍內（正值範圍）
+            var normalized = stepped
+            while normalized < CGFloat(Double.pi / 2) {
+                normalized += CGFloat(4 * Double.pi)
+            }
+            while normalized >= CGFloat(Double.pi / 2 + 4 * Double.pi) {
+                normalized -= CGFloat(4 * Double.pi)
+            }
+            
+            return normalized
+        } else {
+            let angle = CGFloat(Double.pi / 2 - (min / (12 * 60)) * 2 * Double.pi)
+            let stepped = medStepFunction(angle, stepSize: CGFloat(2 * Double.pi / (12 * 60 / 5)))
+            
+            var normalized = stepped
+            while normalized < CGFloat(Double.pi / 2) {
+                normalized += CGFloat(4 * Double.pi)
+            }
+            while normalized >= CGFloat(Double.pi / 2 + 4 * Double.pi) {
+                normalized -= CGFloat(4 * Double.pi)
+            }
+            
+            return normalized
         }
     }
 
@@ -406,20 +436,32 @@ open class TenClock : UIControl{
     /// - Returns: 對應的日期
     func angleToTime(_ angle: Angle) -> Date{
         let dAngle = Double(angle)
-        var minutes: CGFloat = 12 * 60  // 預設 12 小時制（720 分鐘）
-        if clockHourType == ._24Hour{
-            minutes = 24 * 60  // 24 小時制（1440 分鐘）
+        var totalMinutes: CGFloat = 24 * 60  // 24 小時制（1440 分鐘）
+        if clockHourType == ._12Hour{
+            totalMinutes = 12 * 60  // 12 小時制（720 分鐘）
         }
 
-        // 0點在上方
-        // 因為 clockOffset = π，所以 π/2 - π = -π/2
-        // 要讓正上方（π/2）對應到 0:00，需要調整計算
-        let min = CGFloat(((Double.pi / 2 - dAngle) / (2 * Double.pi)) * Double(minutes))
+        // 正上方為 0:00 (π/2)
+        // 順時針旋轉，所以角度遞減
+        // angle = π/2 - (時間比例 × 2π)
+        // 反推：時間比例 = (π/2 - angle) / 2π
+        
+        let timeRatio = (Double.pi / 2 - dAngle) / (2 * Double.pi)
+        var min = CGFloat(timeRatio * Double(totalMinutes))
+        
+        // 對齊到 5 分鐘的步進
+        min = medStepFunction(min, stepSize: 5)
+        
+        // 處理負數或超出範圍的情況
+        while min < 0 {
+            min += totalMinutes
+        }
+        while min >= totalMinutes {
+            min -= totalMinutes
+        }
         
         let startOfToday = Calendar.current.startOfDay(for: Date())
-        
-        // 對齊到 5 分鐘的步進，並加到今天的開始時間
-        return self.calendar.date(byAdding: .minute, value: Int(medStepFunction(min, stepSize: 5)), to: startOfToday)!
+        return self.calendar.date(byAdding: .minute, value: Int(min), to: startOfToday)!
     }
     
     // MARK: - Interface Builder Support
@@ -568,21 +610,22 @@ open class TenClock : UIControl{
         let arcCenter = pathLayer.center
         pathLayer.fillColor = UIColor.clear.cgColor
         pathLayer.lineWidth = pathWidth
+        
         if isReversePathDraw{
-            // 反向繪製（逆時針）
+            // 反向繪製：從 tailAngle（就寢/藍色）逆時針到 headAngle（起床/黃色）
             pathLayer.path = UIBezierPath(
                 arcCenter: arcCenter,
                 radius: trackRadius,
-                startAngle: (twoPi) - headAngle,
-                endAngle: (twoPi) - ((tailAngle - headAngle) >= twoPi ? tailAngle - twoPi : tailAngle),
+                startAngle: (twoPi) - headAngle,  // 起床位置
+                endAngle: (twoPi) - ((tailAngle - headAngle) >= twoPi ? tailAngle - twoPi : tailAngle),  // 就寢位置
                 clockwise: true).cgPath
         }else{
-            // 正向繪製（順時針）
+            // 正向繪製：從 tailAngle（就寢/藍色）順時針到 headAngle（起床/黃色）
             pathLayer.path = UIBezierPath(
                 arcCenter: arcCenter,
                 radius: trackRadius,
-                startAngle: (twoPi) - ((tailAngle - headAngle) >= twoPi ? tailAngle - twoPi : tailAngle),
-                endAngle: (twoPi) - headAngle,
+                startAngle: (twoPi) - ((tailAngle - headAngle) >= twoPi ? tailAngle - twoPi : tailAngle),  // 就寢位置
+                endAngle: (twoPi) - headAngle,  // 起床位置
                 clockwise: true).cgPath
         }
     }
@@ -619,55 +662,60 @@ open class TenClock : UIControl{
         headLayer.path = circle
         tailLayer.size = size
         headLayer.size = size
-        tailLayer.position = tailPoint
-        headLayer.position = headPoint
+        tailLayer.position = tailPoint  // 就寢時間位置
+        headLayer.position = headPoint  // 起床時間位置
         
         // 設定頂層圓形
-        topTailLayer.position = tailPoint
-        topHeadLayer.position = headPoint
-        headLayer.fillColor = tailBgColor.resolvedColor(with: self.traitCollection).cgColor
-        tailLayer.fillColor = headBgColor.resolvedColor(with: self.traitCollection).cgColor
+        topTailLayer.position = tailPoint  // 就寢時間位置
+        topHeadLayer.position = headPoint  // 起床時間位置
+        
+        // 對調顏色
+        // headLayer 應該是黃色（起床時間）
+        // tailLayer 應該是藍色（就寢時間）
+        headLayer.fillColor = headBgColor.resolvedColor(with: self.traitCollection).cgColor  // 起床 = 黃色底
+        tailLayer.fillColor = tailBgColor.resolvedColor(with: self.traitCollection).cgColor  // 就寢 = 藍色底
+        
         topTailLayer.path = iCircle
         topHeadLayer.path = iCircle
         topTailLayer.size = iSize
         topHeadLayer.size = iSize
-        topHeadLayer.fillColor = disabledFormattedColor(headBackgroundColor).resolvedColor(with: self.traitCollection).cgColor
-        topTailLayer.fillColor = disabledFormattedColor(tailBackgroundColor).resolvedColor(with: self.traitCollection).cgColor
+        
+        // 對調顏色
+        topHeadLayer.fillColor = disabledFormattedColor(headBackgroundColor).resolvedColor(with: self.traitCollection).cgColor  // 起床 = 黃色
+        topTailLayer.fillColor = disabledFormattedColor(tailBackgroundColor).resolvedColor(with: self.traitCollection).cgColor  // 就寢 = 藍色
         
         // 清除舊的子圖層
         topHeadLayer.sublayers?.forEach({$0.removeFromSuperlayer()})
         topTailLayer.sublayers?.forEach({$0.removeFromSuperlayer()})
         
-        // 使用開始時間標記圖片或文字
         if let headImage = delegate?.imageForHead?(self){
             let autoSize: CGSize = CGSize(width: min(headImage.size.width, iSize.width), height: min(headImage.size.height, iSize.height))
             let imgSize = delegate?.imageSizeForHead?(self) ?? autoSize
-            let startImg = CALayer()
-            startImg.backgroundColor = UIColor.clear.cgColor
-            startImg.bounds = CGRect(x: 0, y: 0 , width: imgSize.width, height: imgSize.height)
-            startImg.position = topTailLayer.center
-            startImg.contents = headImage.imageAsset?.image(with: self.traitCollection).cgImage ?? headImage.cgImage
-            topTailLayer.addSublayer(startImg)
+            let headImg = CALayer()
+            headImg.backgroundColor = UIColor.clear.cgColor
+            headImg.bounds = CGRect(x: 0, y: 0 , width: imgSize.width, height: imgSize.height)
+            headImg.position = topHeadLayer.center  // 起床時間（黃色標記）
+            headImg.contents = headImage.imageAsset?.image(with: self.traitCollection).cgImage ?? headImage.cgImage
+            topHeadLayer.addSublayer(headImg)
         }else{
-            let stText = tlabel(headText, color: disabledFormattedColor(headTextColor))
-            stText.position = topTailLayer.center
-            topTailLayer.addSublayer(stText)
+            let headText = tlabel(headText, color: disabledFormattedColor(headTextColor))
+            headText.position = topHeadLayer.center
+            topHeadLayer.addSublayer(headText)
         }
         
-        // 使用結束時間標記圖片或文字
         if let tailImage = delegate?.imageForTail?(self){
             let autoSize: CGSize = CGSize(width: min(tailImage.size.width, iSize.width), height: min(tailImage.size.height, iSize.height))
             let imgSize = delegate?.imageSizeForTail?(self) ?? autoSize
-            let endImg = CALayer()
-            endImg.backgroundColor = UIColor.clear.cgColor
-            endImg.bounds = CGRect(x: 0, y: 0 , width: imgSize.width, height: imgSize.height)
-            endImg.position = topHeadLayer.center
-            endImg.contents = tailImage.imageAsset?.image(with: self.traitCollection).cgImage ?? tailImage.cgImage
-            topHeadLayer.addSublayer(endImg)
+            let tailImg = CALayer()
+            tailImg.backgroundColor = UIColor.clear.cgColor
+            tailImg.bounds = CGRect(x: 0, y: 0 , width: imgSize.width, height: imgSize.height)
+            tailImg.position = topTailLayer.center  // 就寢時間（藍色標記）
+            tailImg.contents = tailImage.imageAsset?.image(with: self.traitCollection).cgImage ?? tailImage.cgImage
+            topTailLayer.addSublayer(tailImg)
         }else{
-            let endText = tlabel(tailText, color: disabledFormattedColor(tailTextColor))
-            endText.position = topHeadLayer.center
-            topHeadLayer.addSublayer(endText)
+            let tailText = tlabel(tailText, color: disabledFormattedColor(tailTextColor))
+            tailText.position = topTailLayer.center
+            topTailLayer.addSublayer(tailText)
         }
     }
 
